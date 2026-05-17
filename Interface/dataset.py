@@ -19,7 +19,18 @@ class EDAIDataset(Dataset):
             raw_data = pickle.load(f)
             
         # The exact structure identified in Phase 1:
-        self.samples = raw_data['data']
+        all_samples = raw_data['data']
+        
+        # Filter out corrupted/incomplete samples missing required 'box' data
+        total_before = len(all_samples)
+        self.samples = [
+            s for s in all_samples
+            if hasattr(s, 'box') and s.box is not None and len(s.box) > 0
+            and all(len(b) >= 5 for b in s.box)
+        ]
+        skipped = total_before - len(self.samples)
+        if skipped > 0:
+            print(f"  [Warning] Filtered out {skipped}/{total_before} samples with missing/invalid 'box' data.")
         
         # Optional truncater for rapid localized testing
         if max_samples is not None:

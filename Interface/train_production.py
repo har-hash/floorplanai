@@ -3,7 +3,7 @@ import time
 import argparse
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torch.amp import GradScaler, autocast
 
 # Import Custom Core Modules Built in Phases 1, 2, and 3
@@ -38,7 +38,7 @@ class EarlyStopping:
 def get_args():
     parser = argparse.ArgumentParser(description="Master Training Engine for EDAI 2 AI Architect")
     parser.add_argument('--train_data', type=str, default="static/Data/data_train_converted.pkl")
-    parser.add_argument('--val_data', type=str, default="static/Data/data_test_converted.pkl")
+    parser.add_argument('--val_split', type=float, default=0.1, help="Fraction of training data to use for validation")
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=32, help="Set to 16 or 8 if GPU VRAM runs out")
     parser.add_argument('--lr', type=float, default=3e-4, help="Peak Learning Rate")
@@ -142,14 +142,21 @@ def main():
     # Error handling for missing data files
     if not os.path.exists(args.train_data):
         raise FileNotFoundError(f"Training data not found: {args.train_data}")
-    if not os.path.exists(args.val_data):
-        raise FileNotFoundError(f"Validation data not found: {args.val_data}")
 
     try:
-        train_dataset = EDAIDataset(args.train_data)
-        val_dataset = EDAIDataset(args.val_data)
+        full_dataset = EDAIDataset(args.train_data)
     except Exception as e:
-        raise RuntimeError(f"Failed to load datasets: {str(e)}")
+        raise RuntimeError(f"Failed to load dataset: {str(e)}")
+
+    # Split into train/val from the single working pkl file
+    total = len(full_dataset)
+    val_size = int(total * args.val_split)
+    train_size = total - val_size
+    train_dataset, val_dataset = random_split(
+        full_dataset, [train_size, val_size],
+        generator=torch.Generator().manual_seed(42)  # Reproducible split
+    )
+    print(f"  Split: {train_size} train / {val_size} validation samples")
 
     # Determine optimal num_workers (0 for Windows to avoid multiprocessing issues)
     num_workers = 0 if os.name == 'nt' else 4
