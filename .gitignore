@@ -1,0 +1,21 @@
+# Dataset files
+Network/data/
+Network/data.mat
+
+Interface/static/Data/Img
+Interface/static/Data/snapshot_train
+
+# Large binary files
+*.npy
+*.pkl
+*.mat
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Logs and output
+*.log
+*.txt
+!requirements.txt

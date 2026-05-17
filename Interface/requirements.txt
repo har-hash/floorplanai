@@ -1,0 +1,14 @@
+# EDAI 2 AI Architect Pipeline
+# Usage: pip install -r requirements.txt
+
+# Core Deep Learning
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Mathematical Processing
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Rasterization and Visualization
+Pillow>=9.5.0
+matplotlib>=3.7.0
